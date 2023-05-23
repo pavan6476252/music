@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +15,7 @@ import 'package:music/views/components/recommended_music_video.dart';
 import 'package:music/views/components/romantic_music_video.dart';
 import 'package:music/views/components/throwback_jams.dart';
 import 'package:music/views/components/today_big_hits.dart';
-import 'package:music/views/tabs/trending_tab.dart';
+import 'package:music/views/tabs/downloads_tab.dart';
 import 'package:music/views/tabs/youtube_tab.dart';
 import 'package:music/widgets/audio_widget.dart';
 
@@ -49,10 +51,33 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  Timer? _timer;
+  int _seconds = 0;
+  final int _duration = 5; // Duration in seconds
+  bool _isTimerRunning = false;
+
   @override
   void dispose() {
-    super.dispose();
+    _timer?.cancel();
     pageController.dispose();
+    super.dispose();
+  }
+
+  void startTimer() {
+    if (!_isTimerRunning) {
+      const oneSecond = Duration(seconds: 1);
+      _seconds = 0; // Reset the seconds
+      _isTimerRunning = true;
+      _timer = Timer.periodic(oneSecond, (Timer timer) {
+        setState(() {
+          _seconds++;
+          if (_seconds >= _duration) {
+            timer.cancel();
+            _isTimerRunning = false;
+          }
+        });
+      });
+    }
   }
 
   List<Temperatures> homeItem = [];
@@ -64,6 +89,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       appBar: AppBar(
         title: const Text("Music"),
         actions: [
+          IconButton(onPressed: () {
+              context.push('/search');
+          }, icon: const Icon(Ionicons.search)),
           IconButton(onPressed: () {}, icon: const Icon(Ionicons.settings))
         ],
       ),
@@ -71,7 +99,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           Expanded(
             child: PageView(
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               controller: pageController,
               onPageChanged: (value) {
                 setState(() {
@@ -143,16 +171,40 @@ class _HomePageState extends ConsumerState<HomePage> {
                   },
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (error, stackTrace) =>
-                      Center(child: Text('Failed to fetch data: $error')),
+                  error: (error, stackTrace) => Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Failed to fetch data: $error'),
+                      const SizedBox(height: 15),
+                      OutlinedButton(
+                        onPressed: _isTimerRunning
+                            ? null
+                            : () {
+                                startTimer();
+                                ref.refresh(homePageModelProvider.future);
+                              },
+                        child: _isTimerRunning
+                            ? Text('Reloading .. wait $_seconds')
+                            : const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Ionicons.reload),
+                                  SizedBox(width: 10),
+                                  Text("Reload"),
+                                ],
+                              ),
+                      )
+                    ],
+                  )),
                 ),
                 //trending
-                TreandingTab(),
-                YoutubeMusicDataScreen()
+                const YoutubeMusicDataScreen(),
+                const DownloadsTab(),
               ],
             ),
           ),
-          AudioPlayerWidget(),
+          const AudioPlayerWidget(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -162,22 +214,18 @@ class _HomePageState extends ConsumerState<HomePage> {
             BottomNavigationBarItem(
                 backgroundColor: _page == 0 ? Colors.amber : Colors.grey,
                 label: "Home",
-                icon: Icon(Ionicons.home_outline)),
-            BottomNavigationBarItem(
-                backgroundColor: _page == 0 ? Colors.amber : Colors.grey,
-                label: "Trending",
-                icon: Icon(Ionicons.trending_up)),
+                icon: const Icon(Ionicons.home_outline)),
+          
             BottomNavigationBarItem(
                 backgroundColor: _page == 0 ? Colors.amber : Colors.grey,
                 label: "Youtube",
-                icon: Icon(Ionicons.logo_youtube))
+                icon: const Icon(Ionicons.logo_youtube)),
+                  BottomNavigationBarItem(
+                backgroundColor: _page == 0 ? Colors.amber : Colors.grey,
+                label: "Downloads",
+                icon: const Icon(Ionicons.download)),
           ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push('/search');
-        },
-        child: const Icon(Ionicons.search),
-      ),
+     
     );
   }
 }

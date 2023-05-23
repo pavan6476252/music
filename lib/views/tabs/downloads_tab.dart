@@ -7,17 +7,17 @@ import '../components/recommended_music_video.dart';
 import '../components/so_for_2023.dart';
 import '../components/top_music_video.dart';
 
-class TreandingTab extends ConsumerStatefulWidget {
-  const TreandingTab({super.key});
+class DownloadsTab extends ConsumerStatefulWidget {
+  const DownloadsTab({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _TreandingTabState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _DownloadsTabState();
 }
 
-class _TreandingTabState extends ConsumerState<TreandingTab> {
+class _DownloadsTabState extends ConsumerState<DownloadsTab> {
   @override
   Widget build(BuildContext context) {
-    return Text("df"
+    return Text("download"
         // return homePageAsyncData.when(
         //   data: (homePage) {
         //     return ListView.builder(

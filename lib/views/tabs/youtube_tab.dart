@@ -1,15 +1,47 @@
-import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:music/utils/utils.dart';
-
+import 'package:ionicons/ionicons.dart';
 import '../../api/audio_provider.dart';
 import '../../api/yt_trending_data.dart';
+import '../../utils/utils.dart';
 
-class YoutubeMusicDataScreen extends StatelessWidget {
-  const YoutubeMusicDataScreen({super.key});
+class YoutubeMusicDataScreen extends StatefulWidget {
+  const YoutubeMusicDataScreen({Key? key}) : super(key: key);
+
+  @override
+  State<YoutubeMusicDataScreen> createState() => _YoutubeMusicDataScreenState();
+}
+
+class _YoutubeMusicDataScreenState extends State<YoutubeMusicDataScreen> {
+  Timer? _timer;
+  int _seconds = 0;
+  final int _duration = 5; // Duration in seconds
+  bool _isTimerRunning = false;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void startTimer() {
+    if (!_isTimerRunning) {
+      const oneSecond = Duration(seconds: 1);
+      _seconds = 0; // Reset the seconds
+      _isTimerRunning = true;
+      _timer = Timer.periodic(oneSecond, (Timer timer) {
+        setState(() {
+          _seconds++;
+          if (_seconds >= _duration) {
+            timer.cancel();
+            _isTimerRunning = false;
+          }
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +66,11 @@ class YoutubeMusicDataScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             CircleAvatar(
-                                radius: 41,
-                                backgroundImage: showBackgroudImageProvider(
-                                  artist.thumbnails[1].url,
-                                )),
+                              radius: 41,
+                              backgroundImage: showBackgroudImageProvider(
+                                artist.thumbnails[1].url,
+                              ),
+                            ),
                             const SizedBox(height: 8),
                             Text(
                               artist.title,
@@ -53,9 +86,73 @@ class YoutubeMusicDataScreen extends StatelessWidget {
                     },
                   ),
                 ),
-                // const SizedBox(height: 16),
-                // _list(musicData),
-                const SizedBox(height: 16),
+                SizedBox(
+                  height: 210,
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    itemCount: musicData.youtubeTrending.trending.items.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final trends =
+                          musicData.youtubeTrending.trending.items[index];
+                      return SizedBox(
+                        width: 250,
+                        child: InkWell(
+                          onTap: () {
+                            ref
+                                .read(audioPlayerProvider.notifier)
+                                .playAudio(trends.videoId);
+                          },
+                          child: Card(
+                            elevation: 5,
+                            margin: const EdgeInsets.all(10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(10),
+                                    topRight: Radius.circular(10),
+                                  ),
+                                  child: showBackgroudImage(
+                                    trends.thumbnails[0].url,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        trends.title,
+                                        style: const TextStyle(
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        trends.artists
+                                            .map((element) => element.name)
+                                            .join(" , ")
+                                            .replaceAll(RegExp(r'\{|\}'), ''),
+                                        style: const TextStyle(
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -70,7 +167,6 @@ class YoutubeMusicDataScreen extends StatelessWidget {
                               .read(audioPlayerProvider.notifier)
                               .playAudio(video.videoId);
                         },
-                        // context.push('/audioplayer?query=${video.videoId}'),
                         leading: SizedBox(
                           width: 111,
                           height: 111,
@@ -87,7 +183,8 @@ class YoutubeMusicDataScreen extends StatelessWidget {
                           children: [
                             Text('Views: ${video.views}'),
                             Text(
-                                'Artist: ${video.artists.map((artist) => artist.title).join(', ')}'),
+                              'Artist: ${video.artists.map((artist) => artist.title).join(', ')}',
+                            ),
                           ],
                         ),
                       ),
@@ -103,106 +200,35 @@ class YoutubeMusicDataScreen extends StatelessWidget {
           },
           error: (error, stackTrace) {
             // Failed to fetch music data
-            print(stackTrace);
-            print(error);
-            return Center(child: Text('Error: $error'));
+
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: $error'),
+                SizedBox(height: 15),
+                OutlinedButton(
+                  onPressed: _isTimerRunning
+                      ? null
+                      : () {
+                          startTimer();
+                          ref.refresh(trendingNotifierProvider.future);
+                        },
+                  child: _isTimerRunning
+                      ? Text('Reloading .. wait $_seconds')
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Ionicons.reload),
+                            SizedBox(width: 10),
+                            Text("Reload"),
+                          ],
+                        ),
+                ),
+              ],
+            );
           },
         );
       },
     );
   }
-//   _list(TrendingData musicData){
-//     return ListView.builder(
-//   scrollDirection: Axis.horizontal,
-//   itemCount: musicData.items.length,
-//   itemBuilder: (context, index) {
-//     final item = trendingData.items[index];
-//     final artists = item.artists
-//         .where((artist) => artist.id != null && artist.name != null)
-//         .toList();
-//     final views = item.artists
-//         .where((artist) => artist.id == null && artist.name != null)
-//         .toList();
-
-//     return Container(
-//       width: 200,
-//       margin: EdgeInsets.symmetric(horizontal: 8.0),
-//       child: Card(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.stretch,
-//           children: [
-//             Expanded(
-//               child: Stack(
-//                 fit: StackFit.expand,
-//                 children: [
-//                   Image.network(
-//                     item.thumbnails[0].url,
-//                     fit: BoxFit.cover,
-//                   ),
-//                   Positioned.fill(
-//                     child: ClipRect(
-//                       child: BackdropFilter(
-//                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-//                         child: Container(
-//                           color: Colors.black.withOpacity(0.5),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                   Positioned(
-//                     bottom: 0,
-//                     left: 0,
-//                     right: 0,
-//                     child: Container(
-//                       padding: EdgeInsets.all(8.0),
-//                       color: Colors.black.withOpacity(0.5),
-//                       child: Text(
-//                         item.title,
-//                         style: TextStyle(fontSize: 12, color: Colors.white),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             SizedBox(height: 8.0),
-//             Text(
-//               'Artists:',
-//               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-//             ),
-//             Row(
-//               children: artists.map((artist) {
-//                 return Padding(
-//                   padding: EdgeInsets.only(right: 8.0),
-//                   child: Text(
-//                     artist.name!,
-//                     style: TextStyle(fontSize: 12),
-//                   ),
-//                 );
-//               }).toList(),
-//             ),
-//             SizedBox(height: 8.0),
-//             Text(
-//               'Views:',
-//               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-//             ),
-//             Row(
-//               children: views.map((view) {
-//                 return Padding(
-//                   padding: EdgeInsets.only(right: 8.0),
-//                   child: Text(
-//                     view.name!,
-//                     style: TextStyle(fontSize: 12),
-//                   ),
-//                 );
-//               }).toList(),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   },
-// );
-
-//   }
 }

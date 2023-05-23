@@ -6,9 +6,12 @@ class AudioPlayerController extends StateNotifier<AudioPlayerState> {
   final AudioPlayer _audioPlayer = AudioPlayer(playerId: 'mainPlayer');
 
   AudioPlayerController() : super(AudioPlayerState.stopped()) {
-    _audioPlayer.onPlayerComplete.listen((_) {
-      pauseAudio();
-    });
+    _audioPlayer.onPlayerComplete.listen(
+      (_) {
+        pauseAudio();
+      },
+      onDone: () => pauseAudio(),
+    );
 
     // Change the audioCache for the AudioPlayer instance
     _audioPlayer.audioCache = AudioCache.instance;

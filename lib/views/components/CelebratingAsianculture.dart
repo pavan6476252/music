@@ -27,7 +27,7 @@ class _CelebratingAsianCultureState extends ConsumerState<CelebratingAsianCultur
           ),
         ),
         SizedBox(
-            height: 250,
+            height: 210,
             width: double.maxFinite,
             child: ListView.builder(
                 itemCount: widget.contents!.length,

@@ -1,39 +1,37 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
+import 'package:music/api/yt_trending_model.dart';
+ 
 class TrendingData {
-  final List<Artist> artists;
-  // final List<Country> countries;
+  final List<Artist> artists; 
+  final YoutubeTrending youtubeTrending;
   final List<Video> videos;
 
   TrendingData({
-    required this.artists,
-    // required this.countries,
+    required this.artists, 
+    required this.youtubeTrending,
     required this.videos,
   });
 
   factory TrendingData.fromJson(Map<String, dynamic> json) {
-    final artistsJson = json['artists']['items'] as List<dynamic>?;
-    final countriesJson = json['countries']['options'] as List<dynamic>?;
+    final artistsJson = json['artists']['items'] as List<dynamic>?; 
+
     final videosJson = json['videos']['items'] as List<dynamic>?;
 
     final artists = artistsJson
         ?.map((artist) => Artist.fromJson(artist))
-        .toList(growable: false);
-    // final countries = countriesJson
-    //     ?.map((country) => Country.fromJson(country))
-    //     .toList(growable: false);
+        .toList(growable: false); 
+
+    final trend = YoutubeTrending.fromJson(json);
     final videos = videosJson
         ?.map((video) => Video.fromJson(video))
         .toList(growable: false);
 
     return TrendingData(
-      artists: artists ?? [],
-      // countries: countries ?? [],
+      artists: artists ?? [], 
+      youtubeTrending: trend,
       videos: videos ?? [],
     );
   }
@@ -82,6 +80,7 @@ class Artist {
     }
   }
 }
+
 class Thumbnail {
   final int height;
   final String url;
@@ -101,7 +100,6 @@ class Thumbnail {
     );
   }
 }
-
 
 class Country {
   final String text;
@@ -181,8 +179,7 @@ class Video {
   }
 }
 
-final trendingNotifierProvider =
-    FutureProvider<TrendingData>((ref) async {
+final trendingNotifierProvider = FutureProvider<TrendingData>((ref) async {
   final response = await http.get(
     Uri.parse(
         'https://python-music-server.vercel.app/get_country_charts?countryCode=in'),
