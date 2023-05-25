@@ -13,14 +13,17 @@ class _CommunitySuggestedSongsState
     extends ConsumerState<CommunitySuggestedSongs> {
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SuggestedSongTile(),
-        SuggestedSongTile(),
-        SuggestedSongTile(),
-        SuggestedSongTile(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SuggestedSongTile(),
+          SuggestedSongTile(),
+          SuggestedSongTile(),
+          SuggestedSongTile(),
+        ],
+      ),
     );
   }
 }

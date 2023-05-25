@@ -40,10 +40,10 @@ class _MobileHomePageState extends ConsumerState<MobileHomePage> {
                     widget: TextButton(onPressed: () {}, child: Text('more'))),
                 SuggestedPlaylistCards(
                     data: EssentialPlaylistsData.data, offset: 0),
-                SuggestedPlaylistCards(
-                  data: EssentialPlaylistsData.data,
-                  offset: 4,
-                ),
+                // SuggestedPlaylistCards(
+                //   data: EssentialPlaylistsData.data,
+                //   offset: 4,
+                // ),
                 Heading(
                     title: "Community Suggested",
                     subtitle: "Created based on community suggestions",

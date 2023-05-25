@@ -3,23 +3,36 @@ import 'package:flutter/material.dart';
 const vinayak =
     'https://www.wallpapertip.com/wmimgs/66-666864_god-vinayagar-wallpapers-free-download-psy-ganesha.jpg';
 
+const cristian =
+    'https://img.freepik.com/free-photo/free-photo-good-friday-background-with-jesus-christ-cross_1340-28455.jpg?w=2000';
+
 class EssentialPlaylistsData {
   static List<PlayListData> data = [
-    PlayListData((Icons.music_note_outlined), vinayak, "CHILL OUT", "24 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "workoUT", "14 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "ParkOUT", "24 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "NightMood OUT", "24 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "Dj songs", "44 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "Dance", "14 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "Love OUT", "24 songs"),
-    PlayListData((Icons.music_note_outlined), vinayak, "old songs", "44 songs"),
+    PlayListData(
+        icon: (Icons.music_note_outlined),
+        image: vinayak,
+        title: "GOD SONGS",
+        subtitle: "Playlist",
+        id: "PLBB_MwfPi6EGDnoqfl2YW6RYJge-TnItA"),
+    PlayListData(
+        icon: (Icons.music_note_outlined),
+        image: cristian,
+        title: "Cristian Songs",
+        subtitle: "Playlist",
+        id: "PLBB_MwfPi6EHj-9yqnh4eSl4JcM7RDlWY"),
   ];
 }
 
 class PlayListData {
   final String image;
   final String title;
+  final String id;
   final String subtitle;
   final IconData icon;
-  PlayListData(this.icon, this.image, this.title, this.subtitle);
+  PlayListData(
+      {required this.icon,
+      required this.id,
+      required this.image,
+      required this.title,
+      required this.subtitle});
 }
